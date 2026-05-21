@@ -283,8 +283,7 @@ h2 {
   justify-content: flex-end;
 }
 
-.page-select,
-.number-field {
+.page-select {
   display: inline-flex;
   gap: 6px;
   align-items: center;
@@ -293,9 +292,7 @@ h2 {
   font-weight: 800;
 }
 
-.page-select select,
-.number-field input,
-.template-field-controls select {
+.page-select select {
   min-height: 36px;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -304,14 +301,9 @@ h2 {
   padding: 6px 8px;
 }
 
-.number-field input {
-  width: 72px;
-}
-
-.template-field-list {
-  display: grid;
-  gap: 12px;
+.field-table-wrap {
   margin-top: 16px;
+  overflow-x: auto;
 }
 
 .empty-state {
@@ -324,28 +316,57 @@ h2 {
   font-weight: 700;
 }
 
-.template-field-card {
-  display: grid;
-  gap: 10px;
+.field-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: #fffdf9;
-  padding: 12px;
 }
 
-.template-field-card-selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(35, 106, 88, 0.12);
+.field-table th,
+.field-table td {
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  padding: 8px;
+  vertical-align: top;
 }
 
-.template-field-card-head {
-  display: grid;
-  grid-template-columns: minmax(120px, 1fr) 70px;
-  gap: 8px;
+.field-table th:last-child,
+.field-table td:last-child {
+  border-right: 0;
 }
 
-.template-field-card input,
-.template-field-card textarea {
+.field-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.field-table th {
+  background: #f3eee4;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.field-table th:nth-child(1) {
+  width: 18%;
+}
+
+.field-table th:nth-child(2) {
+  width: 34%;
+}
+
+.field-table th:nth-child(n + 3) {
+  width: 8%;
+}
+
+.field-table input,
+.field-table textarea,
+.field-table select {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -354,39 +375,38 @@ h2 {
   outline: none;
 }
 
-.template-field-card input {
+.field-table input,
+.field-table select {
   min-height: 40px;
   padding: 8px 10px;
-  font-weight: 800;
 }
 
-.template-field-card textarea {
-  min-height: 74px;
+.field-table input {
+  min-width: 64px;
+}
+
+.field-table textarea {
+  min-height: 64px;
   padding: 9px 10px;
   resize: vertical;
 }
 
-.template-field-card input:focus,
-.template-field-card textarea:focus,
+.field-table input:focus,
+.field-table textarea:focus,
+.field-table select:focus,
 .page-select select:focus,
-.number-field input:focus,
-.template-field-controls select:focus {
+.field-table button:focus-visible {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(35, 106, 88, 0.14);
 }
 
-.template-field-controls {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(72px, 1fr));
-  gap: 8px;
+.field-row-selected td {
+  background: rgba(35, 106, 88, 0.08);
 }
 
-.template-field-controls label {
-  display: grid;
-  gap: 4px;
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 800;
+.field-delete-button {
+  width: 100%;
+  min-width: 62px;
 }
 
 .entry-field-table {
@@ -1072,24 +1092,14 @@ h2 {
     grid-column: 1 / -1;
   }
 
-  .page-select,
-  .number-field {
+  .page-select {
     align-items: stretch;
     display: grid;
     gap: 5px;
   }
 
-  .page-select select,
-  .number-field input {
+  .page-select select {
     width: 100%;
-  }
-
-  .template-field-card-head {
-    grid-template-columns: 1fr;
-  }
-
-  .template-field-controls {
-    grid-template-columns: 1fr 1fr;
   }
 
   .secondary-button,
@@ -1235,8 +1245,7 @@ h2 {
 @media (max-width: 390px) {
   .field-actions,
   .stage-actions,
-  .stage-toolbar,
-  .template-field-controls {
+  .stage-toolbar {
     grid-template-columns: 1fr;
   }
 
