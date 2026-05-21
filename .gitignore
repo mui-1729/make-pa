@@ -1,0 +1,8 @@
+node_modules/
+.next/
+out/
+
+*.log
+dev.err
+sample-pa.pdf
+make-pa-screenshot.png
