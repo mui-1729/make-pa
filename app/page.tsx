@@ -764,6 +764,7 @@ export default function Home() {
                       )}
                       key={page.pageNumber}
                       onFieldChange={updateTemplateFieldValue}
+                      onFieldMetaChange={updateTemplateFieldMeta}
                       onFieldSelect={setSelectedTemplateFieldId}
                       page={page}
                       selectedFieldId={selectedTemplateFieldId}
@@ -802,17 +803,101 @@ function TemplatePdfPage({
   page,
   fields,
   onFieldChange,
+  onFieldMetaChange,
   onFieldSelect,
   selectedFieldId,
 }: {
   page: TemplatePage;
   fields: TemplateField[];
   onFieldChange: (id: string, value: string) => void;
+  onFieldMetaChange: (id: string, updates: Partial<TemplateField>) => void;
   onFieldSelect: (id: string) => void;
   selectedFieldId: string | null;
 }) {
+  const pageRef = useRef<HTMLDivElement>(null);
+  const fieldPointerActionRef = useRef<{
+    fieldId: string;
+    mode: "move" | "resize";
+    pointerId: number;
+    startClientX: number;
+    startClientY: number;
+    startX: number;
+    startY: number;
+    startWidth: number;
+    startHeight: number;
+    pageWidth: number;
+    pageHeight: number;
+  } | null>(null);
+
+  function beginFieldPointerAction(
+    event: ReactPointerEvent<HTMLButtonElement>,
+    field: TemplateField,
+    mode: "move" | "resize",
+  ) {
+    const rect = pageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    onFieldSelect(field.id);
+    fieldPointerActionRef.current = {
+      fieldId: field.id,
+      mode,
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: field.x,
+      startY: field.y,
+      startWidth: field.width,
+      startHeight: field.height,
+      pageWidth: rect.width,
+      pageHeight: rect.height,
+    };
+  }
+
+  function handleFieldPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
+    const action = fieldPointerActionRef.current;
+    if (!action || action.pointerId !== event.pointerId) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const deltaX = ((event.clientX - action.startClientX) / action.pageWidth) * 100;
+    const deltaY = ((event.clientY - action.startClientY) / action.pageHeight) * 100;
+
+    if (action.mode === "move") {
+      const maxX = Math.max(0, 100 - action.startWidth);
+      const maxY = Math.max(0, 100 - action.startHeight);
+      onFieldMetaChange(action.fieldId, {
+        x: roundPercent(clamp(action.startX + deltaX, 0, maxX)),
+        y: roundPercent(clamp(action.startY + deltaY, 0, maxY)),
+      });
+      return;
+    }
+
+    onFieldMetaChange(action.fieldId, {
+      width: roundPercent(clamp(action.startWidth + deltaX, 8, 100 - action.startX)),
+      height: roundPercent(clamp(action.startHeight + deltaY, 3, 100 - action.startY)),
+    });
+  }
+
+  function endFieldPointerAction(event: ReactPointerEvent<HTMLButtonElement>) {
+    const action = fieldPointerActionRef.current;
+    if (!action || action.pointerId !== event.pointerId) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    fieldPointerActionRef.current = null;
+  }
+
   return (
-    <div className="source-template-page template-page-edit">
+    <div className="source-template-page template-page-edit" ref={pageRef}>
       <img
         alt={`元PDFテンプレート ${page.pageNumber}ページ`}
         src={page.imageUrl}
@@ -824,20 +909,34 @@ function TemplatePdfPage({
         </div>
       ) : null}
       {fields.map((field) => (
-        <label
+        <div
+          aria-label={`${field.label} 元PDF上の記入欄`}
           className={`template-field ${
             selectedFieldId === field.id ? "template-field-selected" : ""
           }`}
           key={field.id}
           onClick={() => onFieldSelect(field.id)}
+          role="group"
           style={{
             left: `${field.x}%`,
             top: `${field.y}%`,
             width: `${field.width}%`,
-            minHeight: `${field.height}%`,
+            height: `${field.height}%`,
           }}
         >
           <span>{field.label}</span>
+          <button
+            aria-label={`${field.label} を移動`}
+            className="template-field-move-handle"
+            onPointerCancel={endFieldPointerAction}
+            onPointerDown={(event) => beginFieldPointerAction(event, field, "move")}
+            onPointerMove={handleFieldPointerMove}
+            onPointerUp={endFieldPointerAction}
+            title="ドラッグで移動"
+            type="button"
+          >
+            移動
+          </button>
           <textarea
             aria-label={`${field.label} 元PDF上の記入欄`}
             value={field.value}
@@ -845,7 +944,17 @@ function TemplatePdfPage({
             onFocus={() => onFieldSelect(field.id)}
             onChange={(event) => onFieldChange(field.id, event.target.value)}
           />
-        </label>
+          <button
+            aria-label={`${field.label} をリサイズ`}
+            className="template-field-resize-handle"
+            onPointerCancel={endFieldPointerAction}
+            onPointerDown={(event) => beginFieldPointerAction(event, field, "resize")}
+            onPointerMove={handleFieldPointerMove}
+            onPointerUp={endFieldPointerAction}
+            title="ドラッグでリサイズ"
+            type="button"
+          />
+        </div>
       ))}
     </div>
   );
@@ -962,5 +1071,10 @@ function getStagePreset(type: StageItemType) {
 }
 
 function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
+  const safeMax = Math.max(min, max);
+  return Math.min(Math.max(value, min), safeMax);
+}
+
+function roundPercent(value: number) {
+  return Math.round(value * 10) / 10;
 }
