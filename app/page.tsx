@@ -453,7 +453,7 @@ export default function Home() {
           <div className="section-heading">
             <div>
               <p className="eyebrow">Overlay Fields</p>
-              <h2>元PDF上の記入欄</h2>
+              <h2>Excel風入力表</h2>
             </div>
             <div className="field-actions">
               {templatePages.length > 1 ? (
@@ -477,7 +477,7 @@ export default function Home() {
                 disabled={!templatePages.length}
                 type="button"
               >
-                記入欄を追加
+                行追加
               </button>
               <button
                 className="secondary-button"
@@ -491,98 +491,153 @@ export default function Home() {
           </div>
 
           <p className="helper-text neutral">
-            自動推定は使いません。元PDFの枠を見ながら、必要な記入欄だけを追加して位置とサイズを調整してください。
+            自動推定は使いません。表に打ち込んだ内容を、元PDF上の対応する記入欄へ重ねて表示します。
           </p>
 
-          <div className="template-field-list" aria-label="元PDF上の記入欄一覧">
+          <div className="field-table-wrap" aria-label="元PDF上の記入欄一覧">
             {templateFields.length === 0 ? (
               <div className="empty-state">
-                PDFをアップロードしてから「記入欄を追加」を押してください。
+                PDFをアップロードしてから「行追加」を押してください。
               </div>
-            ) : null}
-
-            {templateFields.map((field) => (
-              <section
-                className={`template-field-card ${
-                  selectedTemplateFieldId === field.id ? "template-field-card-selected" : ""
-                }`}
-                key={field.id}
-                onClick={() => setSelectedTemplateFieldId(field.id)}
-              >
-                <div className="template-field-card-head">
-                  <input
-                    aria-label={`${field.label} ラベル`}
-                    value={field.label}
-                    onChange={(event) =>
-                      updateTemplateFieldMeta(field.id, { label: event.target.value })
-                    }
-                  />
-                  <button
-                    className="icon-button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      removeTemplateField(field.id);
-                    }}
-                    type="button"
-                  >
-                    削除
-                  </button>
-                </div>
-                <textarea
-                  aria-label={`${field.label} 記入内容`}
-                  value={field.value}
-                  placeholder="元PDF上に重ねる内容"
-                  onChange={(event) => updateTemplateFieldValue(field.id, event.target.value)}
-                />
-                <div className="template-field-controls">
-                  <label>
-                    <span>ページ</span>
-                    <select
-                      value={field.pageNumber}
-                      onChange={(event) =>
-                        updateTemplateFieldMeta(field.id, {
-                          pageNumber: Number(event.target.value),
-                        })
+            ) : (
+              <table className="field-table">
+                <thead>
+                  <tr>
+                    <th>項目名</th>
+                    <th>記入内容</th>
+                    <th>ページ</th>
+                    <th>横</th>
+                    <th>縦</th>
+                    <th>幅</th>
+                    <th>高さ</th>
+                    <th>削除</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {templateFields.map((field) => (
+                    <tr
+                      className={
+                        selectedTemplateFieldId === field.id ? "field-row-selected" : undefined
                       }
+                      key={field.id}
+                      onClick={() => setSelectedTemplateFieldId(field.id)}
                     >
-                      {templatePages.map((page) => (
-                        <option key={page.pageNumber} value={page.pageNumber}>
-                          {page.pageNumber}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <NumberField
-                    label="横"
-                    max={95}
-                    min={0}
-                    onChange={(value) => updateTemplateFieldMeta(field.id, { x: value })}
-                    value={field.x}
-                  />
-                  <NumberField
-                    label="縦"
-                    max={95}
-                    min={0}
-                    onChange={(value) => updateTemplateFieldMeta(field.id, { y: value })}
-                    value={field.y}
-                  />
-                  <NumberField
-                    label="幅"
-                    max={90}
-                    min={8}
-                    onChange={(value) => updateTemplateFieldMeta(field.id, { width: value })}
-                    value={field.width}
-                  />
-                  <NumberField
-                    label="高さ"
-                    max={35}
-                    min={3}
-                    onChange={(value) => updateTemplateFieldMeta(field.id, { height: value })}
-                    value={field.height}
-                  />
-                </div>
-              </section>
-            ))}
+                      <td>
+                        <input
+                          aria-label={`${field.label} 項目名`}
+                          value={field.label}
+                          onChange={(event) =>
+                            updateTemplateFieldMeta(field.id, { label: event.target.value })
+                          }
+                          onFocus={() => setSelectedTemplateFieldId(field.id)}
+                        />
+                      </td>
+                      <td>
+                        <textarea
+                          aria-label={`${field.label} 記入内容`}
+                          value={field.value}
+                          placeholder="元PDF上に重ねる内容"
+                          onChange={(event) =>
+                            updateTemplateFieldValue(field.id, event.target.value)
+                          }
+                          onFocus={() => setSelectedTemplateFieldId(field.id)}
+                        />
+                      </td>
+                      <td>
+                        <select
+                          aria-label={`${field.label} ページ`}
+                          value={field.pageNumber}
+                          onChange={(event) =>
+                            updateTemplateFieldMeta(field.id, {
+                              pageNumber: Number(event.target.value),
+                            })
+                          }
+                          onFocus={() => setSelectedTemplateFieldId(field.id)}
+                        >
+                          {templatePages.map((page) => (
+                            <option key={page.pageNumber} value={page.pageNumber}>
+                              {page.pageNumber}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          aria-label={`${field.label} 横`}
+                          max={95}
+                          min={0}
+                          onChange={(event) =>
+                            updateTemplateFieldMeta(field.id, { x: Number(event.target.value) })
+                          }
+                          onFocus={() => setSelectedTemplateFieldId(field.id)}
+                          step="0.5"
+                          type="number"
+                          value={Number.isFinite(field.x) ? field.x : 0}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          aria-label={`${field.label} 縦`}
+                          max={95}
+                          min={0}
+                          onChange={(event) =>
+                            updateTemplateFieldMeta(field.id, { y: Number(event.target.value) })
+                          }
+                          onFocus={() => setSelectedTemplateFieldId(field.id)}
+                          step="0.5"
+                          type="number"
+                          value={Number.isFinite(field.y) ? field.y : 0}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          aria-label={`${field.label} 幅`}
+                          max={90}
+                          min={8}
+                          onChange={(event) =>
+                            updateTemplateFieldMeta(field.id, {
+                              width: Number(event.target.value),
+                            })
+                          }
+                          onFocus={() => setSelectedTemplateFieldId(field.id)}
+                          step="0.5"
+                          type="number"
+                          value={Number.isFinite(field.width) ? field.width : 8}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          aria-label={`${field.label} 高さ`}
+                          max={35}
+                          min={3}
+                          onChange={(event) =>
+                            updateTemplateFieldMeta(field.id, {
+                              height: Number(event.target.value),
+                            })
+                          }
+                          onFocus={() => setSelectedTemplateFieldId(field.id)}
+                          step="0.5"
+                          type="number"
+                          value={Number.isFinite(field.height) ? field.height : 3}
+                        />
+                      </td>
+                      <td>
+                        <button
+                          className="icon-button field-delete-button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            removeTemplateField(field.id);
+                          }}
+                          type="button"
+                        >
+                          削除
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </section>
@@ -708,6 +763,7 @@ export default function Home() {
                       )}
                       key={page.pageNumber}
                       onFieldChange={updateTemplateFieldValue}
+                      onFieldMetaChange={updateTemplateFieldMeta}
                       onFieldSelect={setSelectedTemplateFieldId}
                       page={page}
                       selectedFieldId={selectedTemplateFieldId}
@@ -742,49 +798,105 @@ export default function Home() {
   );
 }
 
-function NumberField({
-  label,
-  max,
-  min,
-  onChange,
-  value,
-}: {
-  label: string;
-  max: number;
-  min: number;
-  onChange: (value: number) => void;
-  value: number;
-}) {
-  return (
-    <label className="number-field">
-      <span>{label}</span>
-      <input
-        max={max}
-        min={min}
-        onChange={(event) => onChange(Number(event.target.value))}
-        step="0.5"
-        type="number"
-        value={Number.isFinite(value) ? value : min}
-      />
-    </label>
-  );
-}
-
 function TemplatePdfPage({
   page,
   fields,
   onFieldChange,
+  onFieldMetaChange,
   onFieldSelect,
   selectedFieldId,
 }: {
   page: TemplatePage;
   fields: TemplateField[];
   onFieldChange: (id: string, value: string) => void;
+  onFieldMetaChange: (id: string, updates: Partial<TemplateField>) => void;
   onFieldSelect: (id: string) => void;
   selectedFieldId: string | null;
 }) {
+  const pageRef = useRef<HTMLDivElement>(null);
+  const fieldPointerActionRef = useRef<{
+    fieldId: string;
+    mode: "move" | "resize";
+    pointerId: number;
+    startClientX: number;
+    startClientY: number;
+    startX: number;
+    startY: number;
+    startWidth: number;
+    startHeight: number;
+    pageWidth: number;
+    pageHeight: number;
+  } | null>(null);
+
+  function beginFieldPointerAction(
+    event: ReactPointerEvent<HTMLButtonElement>,
+    field: TemplateField,
+    mode: "move" | "resize",
+  ) {
+    const rect = pageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    onFieldSelect(field.id);
+    fieldPointerActionRef.current = {
+      fieldId: field.id,
+      mode,
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: field.x,
+      startY: field.y,
+      startWidth: field.width,
+      startHeight: field.height,
+      pageWidth: rect.width,
+      pageHeight: rect.height,
+    };
+  }
+
+  function handleFieldPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
+    const action = fieldPointerActionRef.current;
+    if (!action || action.pointerId !== event.pointerId) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const deltaX = ((event.clientX - action.startClientX) / action.pageWidth) * 100;
+    const deltaY = ((event.clientY - action.startClientY) / action.pageHeight) * 100;
+
+    if (action.mode === "move") {
+      const maxX = Math.max(0, 100 - action.startWidth);
+      const maxY = Math.max(0, 100 - action.startHeight);
+      onFieldMetaChange(action.fieldId, {
+        x: roundPercent(clamp(action.startX + deltaX, 0, maxX)),
+        y: roundPercent(clamp(action.startY + deltaY, 0, maxY)),
+      });
+      return;
+    }
+
+    onFieldMetaChange(action.fieldId, {
+      width: roundPercent(clamp(action.startWidth + deltaX, 8, 100 - action.startX)),
+      height: roundPercent(clamp(action.startHeight + deltaY, 3, 100 - action.startY)),
+    });
+  }
+
+  function endFieldPointerAction(event: ReactPointerEvent<HTMLButtonElement>) {
+    const action = fieldPointerActionRef.current;
+    if (!action || action.pointerId !== event.pointerId) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    fieldPointerActionRef.current = null;
+  }
+
   return (
-    <div className="source-template-page template-page-edit">
+    <div className="source-template-page template-page-edit" ref={pageRef}>
       <img
         alt={`元PDFテンプレート ${page.pageNumber}ページ`}
         src={page.imageUrl}
@@ -796,20 +908,34 @@ function TemplatePdfPage({
         </div>
       ) : null}
       {fields.map((field) => (
-        <label
+        <div
+          aria-label={`${field.label} 元PDF上の記入欄`}
           className={`template-field ${
             selectedFieldId === field.id ? "template-field-selected" : ""
           }`}
           key={field.id}
           onClick={() => onFieldSelect(field.id)}
+          role="group"
           style={{
             left: `${field.x}%`,
             top: `${field.y}%`,
             width: `${field.width}%`,
-            minHeight: `${field.height}%`,
+            height: `${field.height}%`,
           }}
         >
           <span>{field.label}</span>
+          <button
+            aria-label={`${field.label} を移動`}
+            className="template-field-move-handle"
+            onPointerCancel={endFieldPointerAction}
+            onPointerDown={(event) => beginFieldPointerAction(event, field, "move")}
+            onPointerMove={handleFieldPointerMove}
+            onPointerUp={endFieldPointerAction}
+            title="ドラッグで移動"
+            type="button"
+          >
+            移動
+          </button>
           <textarea
             aria-label={`${field.label} 元PDF上の記入欄`}
             value={field.value}
@@ -817,7 +943,17 @@ function TemplatePdfPage({
             onFocus={() => onFieldSelect(field.id)}
             onChange={(event) => onFieldChange(field.id, event.target.value)}
           />
-        </label>
+          <button
+            aria-label={`${field.label} をリサイズ`}
+            className="template-field-resize-handle"
+            onPointerCancel={endFieldPointerAction}
+            onPointerDown={(event) => beginFieldPointerAction(event, field, "resize")}
+            onPointerMove={handleFieldPointerMove}
+            onPointerUp={endFieldPointerAction}
+            title="ドラッグでリサイズ"
+            type="button"
+          />
+        </div>
       ))}
     </div>
   );
@@ -934,5 +1070,10 @@ function getStagePreset(type: StageItemType) {
 }
 
 function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
+  const safeMax = Math.max(min, max);
+  return Math.min(Math.max(value, min), safeMax);
+}
+
+function roundPercent(value: number) {
+  return Math.round(value * 10) / 10;
 }
