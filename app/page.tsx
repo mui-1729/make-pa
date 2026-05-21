@@ -19,7 +19,7 @@ type TemplatePage = {
   height: number;
 };
 
-type StageItemType = "mic" | "amp" | "person" | "di" | "monitor" | "drums";
+type StageItemType = "mic" | "amp" | "person" | "drums";
 
 type StageItem = {
   id: string;
@@ -49,11 +49,9 @@ const stageItemPresets: Array<{
   mark: string;
   className: string;
 }> = [
-  { type: "mic", label: "マイク", mark: "MIC", className: "stage-item-mic" },
+  { type: "mic", label: "マイク", mark: "○→", className: "stage-item-mic" },
   { type: "amp", label: "アンプ", mark: "AMP", className: "stage-item-amp" },
   { type: "person", label: "人", mark: "人", className: "stage-item-person" },
-  { type: "di", label: "DI", mark: "DI", className: "stage-item-di" },
-  { type: "monitor", label: "モニター", mark: "MON", className: "stage-item-monitor" },
   { type: "drums", label: "ドラム", mark: "DRM", className: "stage-item-drums" },
 ];
 
@@ -157,6 +155,7 @@ export default function Home() {
     const typeCount = stageItems.filter((item) => item.type === type).length + 1;
     const total = stageItems.length;
     const id = crypto.randomUUID();
+    const isDrums = type === "drums";
 
     setStageItems((current) => [
       ...current,
@@ -164,8 +163,8 @@ export default function Home() {
         id,
         type,
         label: `${preset.label}${typeCount}`,
-        x: 20 + (total % 5) * 13,
-        y: 24 + (Math.floor(total / 5) % 4) * 16,
+        x: isDrums ? 50 : 20 + (total % 5) * 13,
+        y: isDrums ? 18 : 24 + (Math.floor(total / 5) % 4) * 16,
       },
     ]);
     setSelectedStageItemId(id);
