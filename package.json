@@ -11,17 +11,17 @@
   "dependencies": {
     "html2canvas": "latest",
     "jspdf": "latest",
-    "next": "latest",
+    "next": "16.4.1",
     "pdfjs-dist": "latest",
-    "react": "latest",
-    "react-dom": "latest"
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "eslint": "latest",
-    "eslint-config-next": "latest",
+    "eslint-config-next": "16.4.1",
     "typescript": "latest"
   }
 }
