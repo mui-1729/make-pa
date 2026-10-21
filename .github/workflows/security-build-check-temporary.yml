@@ -1,0 +1,28 @@
+name: Temporary security dependency build check
+on:
+  push:
+    branches: [security/nextjs-oct-2026]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: security/nextjs-oct-2026
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build
+        run: npm run build
+      - name: Remove temporary validation workflow
+        if: always()
+        run: |
+          git rm .github/workflows/security-build-check-temporary.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: remove temporary security build check"
+          git push origin HEAD:security/nextjs-oct-2026
